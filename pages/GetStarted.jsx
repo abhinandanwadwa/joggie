@@ -5,10 +5,14 @@ import React from 'react';
 //   MontserratAlternates_700Bold
 // } from "@expo-google-fonts/dev";
 
-const GetStarted = () => {
+const GetStarted = ({ navigation }) => {
   // let [fontsLoaded] = useFonts({
   //   MontserratAlternates_700Bold
   // });
+
+  const goToRegister = () => {
+    navigation.navigate('SignIn');
+  }
 
 
   return (
@@ -24,7 +28,7 @@ const GetStarted = () => {
           <Text style={styles.smallText}>This app will help increase your sport potential and</Text>
           <Text style={styles.smallText}>find friends among like-minded people.</Text>
         </View>
-        <Pressable style={styles.buttonContainer}>
+        <Pressable onPress={goToRegister} style={styles.buttonContainer}>
           <Text style={styles.buttonText}>Register</Text>
         </Pressable>
         <View style={styles.signInContainer}>
