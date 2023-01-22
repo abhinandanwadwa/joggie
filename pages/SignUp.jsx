@@ -8,7 +8,7 @@ const SignUp = () => {
         email: "",
         password: ""
     })
-    
+
     const SignUpUser = async (e)=>{
         e.preventDefault()
 
@@ -28,9 +28,8 @@ const SignUp = () => {
         )        
     }
 
-
   return (
-    <View>
+    <View style={styles.mainContainer}>
       <Text>SignUp</Text>
       <View>
             <Text>Full Name</Text>
@@ -107,3 +106,24 @@ const SignUp = () => {
 }
 
 export default SignUp
+
+const styles = StyleSheet.create({
+    mainContainer:{
+        height: "100%",
+        paddingHorizontal: 30,
+        paddingTop: 30,
+        backgroundColor: "fff"
+    },
+    inputStyle: {
+        borderWidth: 1,
+        borderColor: "rgba(0,0,0,0.3)",
+        paddingHorizontal: 15,
+        paddingVertical: 7,
+        borderRadius: 1,
+        fontFamily: "regular",
+        fontSize: 18
+    },
+    wrap:{
+        display: "flex"
+    }
+})

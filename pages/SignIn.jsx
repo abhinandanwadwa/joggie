@@ -5,7 +5,17 @@ import { account } from '../appwrite/appwriteConfig';
 import {v4 as uuidv4} from 'uuid'
 
 const SignIn = () => {
-    
+    const [agree, setAgree] = useState(false)
+    const [user, SetUser] = useState({
+        email:"",
+        password:""
+    })
+    try {
+        await account.createEmailSession(user.email, user.password)
+        //navigate to 
+    } catch (error) {
+        //error page 404
+    }
 
   return (
     <View  style={styles.mainContainer}>
@@ -29,8 +39,8 @@ const SignIn = () => {
         </View>
         <View style={styles.wrap}>
             <Checkbox 
-            // value={ } 
-            // onValueChange={()=>} 
+            onValueChange={()=>setAgree(!agree)}
+            color={agree? "black" : undefined}
             />
             <Text>Remember me</Text>
         </View>
