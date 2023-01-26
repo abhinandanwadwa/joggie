@@ -1,89 +1,40 @@
-// import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-// import React from 'react'
-// import Checkbox from 'expo-checkbox';
-// import { account } from '../appwrite/appwriteConfig';
-// import {v4 as uuidv4} from 'uuid'
-
-// const SignIn = () => {
-//     const [agree, setAgree] = useState(false)
-//     const [user, SetUser] = useState({
-//         email:"",
-//         password:""
-//     })
-//     try {
-//         const signInInner = async () => {
-//             await account.createEmailSession(user.email, user.password)
-//         }
-//         signInInner();
-//         //navigate to 
-//     } catch (error) {
-//         //error page 404
-//     }
-
-//   return (
-//     <View  style={styles.mainContainer}>
-//         <Text>Sign In</Text>
-//         <View>
-//             <Text>Email</Text>
-//             <TextInput 
-//             style={styles.inputStyle}
-//             autoCapitalize="none"
-//             autoCorrect={false}
-//             />
-//         </View>
-//         <View>
-//             <Text>Password</Text>
-//             <TextInput 
-//             style={styles.inputStyle}
-//             autoCapitalize="none"
-//             autoCorrect={false}
-//             secureTextEntry={true}
-//             />
-//         </View>
-//         <View style={styles.wrap}>
-//             <Checkbox 
-//             onValueChange={()=>setAgree(!agree)}
-//             color={agree? "black" : undefined}
-//             />
-//             <Text>Remember me</Text>
-//         </View>
-//         <TouchableOpacity>
-//             <Text>Continue</Text>
-//         </TouchableOpacity>
-//     </View>
-//   );
-// }
-
-// export default SignIn
-
-// const styles = StyleSheet.create({
-//     mainContainer:{
-//         height: "100%",
-//         paddingHorizontal: 30,
-//         paddingTop: 30,
-//         backgroundColor: "fff"
-//     },
-//     inputStyle: {
-//         borderWidth: 1,
-//         borderColor: "rgba(0,0,0,0.3)",
-//         paddingHorizontal: 15,
-//         paddingVertical: 7,
-//         borderRadius: 1,
-//         fontFamily: "regular",
-//         fontSize: 18
-//     },
-//     wrap:{
-//         display: "flex"
-//     }
-// })
-
-
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useState } from 'react'
 import Checkbox from 'expo-checkbox'
+import { showMessage } from 'react-native-flash-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignIn = ({ navigation }) => {
     const [agree, setAgree] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleLogin = async () => {
+        const response = await fetch('https://joggie-backend.onrender.com/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        const json = await response.json();
+        try {
+            await AsyncStorage.setItem('auth-token', json.authtoken);
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
+        } catch (error) {
+            console.log(error);
+            showMessage({
+                message: "Invalid Credentials",
+                type: 'danger',
+                titleStyle: { fontSize: 18 },
+                style: { display: 'flex', justifyContent: 'center', alignItems: 'center' }
+            })
+        }
+    }
+
   return (
     <View style={styles.mainContainer}>
         <View style={{ flex: 0.45, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 50 }}>
@@ -92,12 +43,12 @@ const SignIn = ({ navigation }) => {
         <View style={{ width: '100%', alignItems: 'center', flex: 1 }}>
             <View style={{...styles.inputContainer, marginBottom: 30}}>
                 <Text style={{ marginBottom: 8, letterSpacing: 0.8 }}>Email</Text>
-                <TextInput placeholder='ryan35@gmail.com' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} />
+                <TextInput value={email} onChangeText={(text) => setEmail(text)} placeholder='ryan35@gmail.com' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} />
             </View>
             <View style={{...styles.inputContainer, marginBottom: 15}}>
                 <Text style={{ marginBottom: 8, letterSpacing: 0.8 }}>Password</Text>
                 <View style={{ position: 'relative' }}>
-                    <TextInput placeholder='Enter your password' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} secureTextEntry={true}
+                    <TextInput value={password} onChangeText={(text) => setPassword(text)} placeholder='Enter your password' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} secureTextEntry={true}
                     />
                     <Image style={{ top: '30%', position: 'absolute', right: 20 }} source={require('../assets/eye-off.png')} />
                 </View>
@@ -112,7 +63,7 @@ const SignIn = ({ navigation }) => {
                 />
                 <Text style={{ marginLeft: 10, letterSpacing: 0.8 }}>Remember me</Text>
             </View>
-            <Pressable style={styles.buttonContainer}>
+            <Pressable onPress={handleLogin} style={styles.buttonContainer}>
                 <Text style={styles.buttonText}>Continue</Text>
             </Pressable>
             <View style={styles.signInContainer}>

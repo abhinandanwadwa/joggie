@@ -1,42 +1,48 @@
-import { Button, Image, Pressable, StyleSheet, Text, View } from 'react-native'
-import React from 'react';
-// import {
-//   useFonts,
-//   MontserratAlternates_700Bold
-// } from "@expo-google-fonts/dev";
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GetStarted = ({ navigation }) => {
-  // let [fontsLoaded] = useFonts({
-  //   MontserratAlternates_700Bold
-  // });
+  const [authtoken, setAuthtoken] = useState(0);
+
+  useEffect(() => {
+    const checkSignIn = async () => {
+      const authtoken = await AsyncStorage.getItem('auth-token');
+      if (authtoken) {
+          navigation.navigate('Home');
+          setAuthtoken(1);
+      }
+    }
+  checkSignIn();
+  }, []);
+  
 
   const goToRegister = () => {
-    navigation.navigate('SignIn');
+    navigation.navigate('SignUp');
   }
 
-
   return (
-    <View style={styles.container}>
-      <View style={styles.topPart}>
-        <Image source={require('../assets/homeImage.png')} style={styles.image} />
-      </View>
-      <View style={styles.bottomPart}>
-        <Text style={styles.headingP1}>Welcome to <Text style={styles.highlightedJoggie}>Joggie</Text>!</Text>
-        <Text style={styles.headingP2}>Let's make sport more fun!</Text>
+      <View style={styles.container}>
+        <View style={styles.topPart}>
+          <Image source={require('../assets/homeImage.png')} style={styles.image} />
+        </View>
+        <View style={styles.bottomPart}>
+          <Text style={styles.headingP1}>Welcome to <Text style={styles.highlightedJoggie}>Joggie</Text>!</Text>
+          <Text style={styles.headingP2}>Let's make sport more fun!</Text>
 
-        <View style={styles.smallTextContainer}>
-          <Text style={styles.smallText}>This app will help increase your sport potential and</Text>
-          <Text style={styles.smallText}>find friends among like-minded people.</Text>
-        </View>
-        <Pressable onPress={goToRegister} style={styles.buttonContainer}>
-          <Text style={styles.buttonText}>Register</Text>
-        </Pressable>
-        <View style={styles.signInContainer}>
-          <Text style={styles.signInText1}>Already have an account?</Text>
-          <Text style={styles.signInText2}>Sign in</Text>
+          <View style={styles.smallTextContainer}>
+            <Text style={styles.smallText}>This app will help increase your sport potential and</Text>
+            <Text style={styles.smallText}>find friends among like-minded people.</Text>
+          </View>
+          <Pressable onPress={goToRegister} style={styles.buttonContainer}>
+            <Text style={styles.buttonText}>Register</Text>
+          </Pressable>
+          <View style={styles.signInContainer}>
+            <Text style={styles.signInText1}>Already have an account?</Text>
+            <Text style={styles.signInText2}>Sign in</Text>
+          </View>
         </View>
       </View>
-    </View>
   );
 }
 

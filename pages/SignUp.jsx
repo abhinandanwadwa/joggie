@@ -1,146 +1,83 @@
-// import { View, Text } from 'react-native'
-// import React, { useState } from 'react'
-
-// const SignUp = () => {
-//     const [agree, setAgree] = useState(false)
-//     const [user,setUser] = useState({
-//         name: "",
-//         email: "",
-//         password: ""
-//     })
-
-//     const SignUpUser = async (e)=>{
-//         e.preventDefault()
-
-//         const promise = account.create(
-//             uuidv4(),
-//             user.name,
-//             user.email,
-//             user.password
-//         );
-//         promise.then(
-//             function(response){
-//                 //navigate to main page
-//             },
-//             function(error){
-//                 //failure
-//             }
-//         )        
-//     }
-
-//   return (
-//     <View style={styles.mainContainer}>
-//       <Text>SignUp</Text>
-//       <View>
-//             <Text>Full Name</Text>
-//             <TextInput 
-//             onChange={(e)=>{
-//                 setUser({
-//                     ...user,
-//                     name: e.target.value
-//                 })
-//             }}
-//             style={styles.inputStyle}
-//             autoCapitalize="none"
-//             autoCorrect={false}
-//             />
-//         </View>
-//         <View>
-//             <Text>Email</Text>
-//             <TextInput 
-//             style={styles.inputStyle}
-//             autoCapitalize="none"
-//             autoCorrect={false}
-//             onChange={(e)=>{
-//                 setUser({
-//                     ...user,
-//                     email: e.target.value
-//                 })
-//             }}
-//             />
-//         </View>
-//         <View>
-//             <Text>Password</Text>
-//             <TextInput 
-//             style={styles.inputStyle}
-//             autoCapitalize="none"
-//             autoCorrect={false}
-//             secureTextEntry={true}
-//             onChange={(e)=>{
-//                 setUser({
-//                     ...user,
-//                     password: e.target.value
-//                 })
-//             }}
-//             />
-//         </View>
-//         <View>
-//             <Text>Confirm Password</Text>
-//             <TextInput 
-//             style={styles.inputStyle}
-//             autoCapitalize="none"
-//             autoCorrect={false}
-//             secureTextEntry={true}
-//             />
-//         </View>
-//         <View style={styles.wrap}>
-//             <Checkbox 
-//             value={agree} 
-//             onValueChange={()=>setAgree(!agree)}
-//             color={agree? "black" : undefined} 
-//             />
-//             <Text>I agree to the terms and conditions</Text>
-//         </View>
-//         <TouchableOpacity
-//         //change bg color with "agree" state
-//             onClick={SignUpUser}
-//         >
-//             <Text>Sign up</Text>
-//         </TouchableOpacity>
-//         <Text>I agree to the terms and conditions</Text>
-//         <TouchableOpacity>
-//             <Text> Sign in</Text>
-//         </TouchableOpacity>
-//     </View>
-//   )
-// }
-
-// export default SignUp
-
-// const styles = StyleSheet.create({
-//     mainContainer:{
-//         height: "100%",
-//         paddingHorizontal: 30,
-//         paddingTop: 30,
-//         backgroundColor: "fff"
-//     },
-//     inputStyle: {
-//         borderWidth: 1,
-//         borderColor: "rgba(0,0,0,0.3)",
-//         paddingHorizontal: 15,
-//         paddingVertical: 7,
-//         borderRadius: 1,
-//         fontFamily: "regular",
-//         fontSize: 18
-//     },
-//     wrap:{
-//         display: "flex"
-//     }
-// })
-
-
-
-
-
-
-
-
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Checkbox from 'expo-checkbox'
+import { showMessage, hideMessage } from "react-native-flash-message";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignUp = ({ navigation }) => {
     const [agree, setAgree] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const authtoken = await AsyncStorage.getItem('auth-token');
+            if (authtoken) {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                });
+            }
+        }
+        checkAuth();
+    }, []);
+    
+
+    const handleSignUp = async () => {
+        if (password !== confirmPassword) {
+            showMessage({
+                message: "Password and Confirm Password should match",
+                type: 'error',
+                duration: 3000,
+            });
+        }
+        else {
+            const response = await fetch('https://joggie-backend.onrender.com/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, password })
+            });
+            const json = await response.json();
+            try {
+                await AsyncStorage.setItem('auth-token', json.authtoken);
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                });
+            } catch (error) {
+                console.log(error);
+                if (json.error) {
+                    showMessage({
+                        message: json.error,
+                        type: 'danger',
+                        titleStyle: { fontSize: 18 },
+                        style: { display: 'flex', justifyContent: 'center', alignItems: 'center' }
+                    });
+                }
+                else if (json.errors) {
+                    showMessage({
+                        message: json.errors[0].msg,
+                        type: 'danger',
+                        titleStyle: { fontSize: 18 },
+                        style: { display: 'flex', justifyContent: 'center', alignItems: 'center' }
+                    });
+                }
+                else {
+                    console.log(json);
+                    showMessage({
+                        message: "Internal Server Error",
+                        type: 'danger',
+                        titleStyle: { fontSize: 18 },
+                        style: { display: 'flex', justifyContent: 'center', alignItems: 'center' }
+                    });
+                }
+            }
+        }
+    }
   return (
     <View style={styles.mainContainer}>
         <View style={{ flex: 0.25, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 50 }}>
@@ -149,16 +86,16 @@ const SignUp = ({ navigation }) => {
         <View style={{ width: '100%', alignItems: 'center', flex: 1 }}>
             <View style={{...styles.inputContainer, marginBottom: 30}}>
                 <Text style={{ marginBottom: 8, letterSpacing: 0.8 }}>Full Name</Text>
-                <TextInput placeholder='John Smith' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} />
+                <TextInput value={name} onChangeText={(text) => setName(text)} placeholder='John Smith' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} />
             </View>
             <View style={{...styles.inputContainer, marginBottom: 30}}>
                 <Text style={{ marginBottom: 8, letterSpacing: 0.8 }}>Email</Text>
-                <TextInput placeholder='ryan35@gmail.com' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} />
+                <TextInput value={email} onChangeText={(text) => setEmail(text)} placeholder='ryan35@gmail.com' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} />
             </View>
             <View style={{...styles.inputContainer, marginBottom: 30}}>
                 <Text style={{ marginBottom: 8, letterSpacing: 0.8 }}>Password</Text>
                 <View style={{ position: 'relative' }}>
-                    <TextInput placeholder='Enter your password' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} secureTextEntry={true}
+                    <TextInput value={password} onChangeText={(text) => setPassword(text)} placeholder='Enter your password' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} secureTextEntry={true}
                     />
                     <Image style={{ top: '30%', position: 'absolute', right: 20 }} source={require('../assets/eye-off.png')} />
                 </View>
@@ -166,7 +103,7 @@ const SignUp = ({ navigation }) => {
             <View style={{...styles.inputContainer, marginBottom: 15}}>
                 <Text style={{ marginBottom: 8, letterSpacing: 0.8 }}>Confirm Password</Text>
                 <View style={{ position: 'relative' }}>
-                    <TextInput placeholder='Enter your password' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} secureTextEntry={true}
+                    <TextInput value={confirmPassword} onChangeText={(text) => setConfirmPassword(text)} placeholder='Enter your password' style={styles.inputStyle} autoCapitalize="none" autoCorrect={false} secureTextEntry={true}
                     />
                     <Image style={{ top: '30%', position: 'absolute', right: 20 }} source={require('../assets/eye-off.png')} />
                 </View>
@@ -181,8 +118,8 @@ const SignUp = ({ navigation }) => {
                 />
                 <Text style={{ marginLeft: 10, letterSpacing: 0.8 }}>I agree to the terms and conditions</Text>
             </View>
-            <Pressable style={styles.buttonContainer}>
-                <Text style={styles.buttonText}>Continue</Text>
+            <Pressable onPress={handleSignUp} style={styles.buttonContainer}>
+                <Text style={styles.buttonText}>Sign up</Text>
             </Pressable>
             <View style={styles.signInContainer}>
                 <Text style={styles.signInText1}>Already have an account?</Text>
